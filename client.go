@@ -121,7 +121,7 @@ func encoder(input string) string {
 		i += 1
 	}
 	if len(ary)==0{
-		result += "*1\r\n$0\r\n\r\n"
+		result = "*1\r\n$0\r\n\r\n"
 	}
 	return result
 }
