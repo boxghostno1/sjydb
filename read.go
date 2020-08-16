@@ -10,14 +10,14 @@ import (
 	"strconv"
 )
 
-func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro *gorocksdb.ReadOptions){
+func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro *gorocksdb.ReadOptions) {
 	pos := 0
 	result := ""
 	tmp := 0
 	it := db.NewIterator(ro)
 	defer it.Close()
 	rand.Seed(time.Now().UnixNano())
-	switch kw1{
+	switch kw1 {
 	case "exists":
 		num := 0
 		if lencmd < 2 {
@@ -30,7 +30,7 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 			pos = end + 1
 			keystr := "$" + a[end-1-length:end-1]
 			if exist(db, ro, keystr) {
-				num+=1
+				num += 1
 			}
 		}
 		result = strconv.Itoa(num)
@@ -45,8 +45,8 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 		key := []byte(keystr)
 		slice, _ := db.Get(ro, key)
 		if len(slice.Data()) != 0 {
-			result =  string(slice.Data())[1:]
-		}else{
+			result = string(slice.Data())[1:]
+		} else {
 			tmp = -1
 		}
 	case "strlen":
@@ -58,11 +58,11 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 		keystr := "$" + a[end-1-length:end-1]
 		pos = end + 1
 		key := []byte(keystr)
-		slice,_ := db.Get(ro, key)
+		slice, _ := db.Get(ro, key)
 		if len(slice.Data()) == 0 {
 			result = strconv.Itoa(0)
 		} else {
-			result = strconv.Itoa(len(string(slice.Data()))-1)
+			result = strconv.Itoa(len(string(slice.Data())) - 1)
 		}
 	case "getrange":
 		if lencmd != 4 {
@@ -74,20 +74,24 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 		pos = end + 1
 		end, length = bulkstring(pos, a)
 		pos = end + 1
-		astart,_ := strconv.Atoi(a[end-1-length:end-1])
+		astart, _ := strconv.Atoi(a[end-1-length : end-1])
 		end, length = bulkstring(pos, a)
-		aend,_ := strconv.Atoi(a[end-1-length:end-1])
+		aend, _ := strconv.Atoi(a[end-1-length : end-1])
 		pos = end + 1
 		key := []byte(keystr)
-		slice,_ := db.Get(ro, key)
+		slice, _ := db.Get(ro, key)
 		if len(slice.Data()) == 0 {
 			result = ""
 		} else {
 			valuestr := string(slice.Data())[1:]
-			if astart<0{astart+=len(valuestr)}
-			if aend<0{aend+=len(valuestr)}
-			aend+=1
-			if astart>=0 && astart<len(valuestr) && aend>0{
+			if astart < 0 {
+				astart += len(valuestr)
+			}
+			if aend < 0 {
+				aend += len(valuestr)
+			}
+			aend += 1
+			if astart >= 0 && astart < len(valuestr) && aend > 0 {
 				var res string
 				if aend > len(valuestr) {
 					res = valuestr[astart:]
@@ -123,17 +127,19 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 			break
 		}
 		end, length = bulkstring(pos, a)
-		index,err := strconv.Atoi(a[end-1-length:end-1])
-		if err!=nil{
+		index, err := strconv.Atoi(a[end-1-length : end-1])
+		if err != nil {
 			tmp = -1
 			break
 		}
 		pos = end + 1
 		listlen, leftseq, _, _ := message(db, ro, keystr)
-		if index<0{index+=listlen}
-		if index>=listlen{
+		if index < 0 {
+			index += listlen
+		}
+		if index >= listlen {
 			tmp = -1
-		}else{
+		} else {
 			itemkeystr := "l" + keystr[1:] + B8(leftseq)
 			it.Seek([]byte(itemkeystr))
 			itemvalue := it.Value()
@@ -211,7 +217,7 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 				hashlen -= 1
 				key := it.Key()
 				value := it.Value()
-				result += string(key.Data())[len(keystr):]+"\r\n"+string(value.Data())[1:]+"\r\n"
+				result += string(key.Data())[len(keystr):] + "\r\n" + string(value.Data())[1:] + "\r\n"
 				key.Free()
 				value.Free()
 				it.Next()
@@ -267,7 +273,7 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 		for scard > 0 {
 			scard -= 1
 			key := it.Key()
-			result += string(key.Data())[len(keystr):]+"\r\n"
+			result += string(key.Data())[len(keystr):] + "\r\n"
 			key.Free()
 			it.Next()
 		}
@@ -316,13 +322,13 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 		keystr := "Z" + a[end-1-length:end-1]
 		pos = end + 1
 		end, length = bulkstring(pos, a)
-		member := a[end-1-length:end-1]
+		member := a[end-1-length : end-1]
 		pos = end + 1
-		zkeystr,index := zexists(db,ro,keystr,member)
-		if index<0{
+		zkeystr, index := zexists(db, ro, keystr, member)
+		if index < 0 {
 			tmp = -1
-		}else{
-			score,_ := strconv.Atoi(zkeystr[len(keystr):len(keystr)+8])
+		} else {
+			score, _ := strconv.Atoi(zkeystr[len(keystr) : len(keystr)+8])
 			result = strconv.Itoa(score)
 		}
 	case "zrank":
@@ -334,12 +340,12 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 		keystr := "Z" + a[end-1-length:end-1]
 		pos = end + 1
 		end, length = bulkstring(pos, a)
-		member := a[end-1-length:end-1]
+		member := a[end-1-length : end-1]
 		pos = end + 1
-		_,index := zexists(db,ro,keystr,member)
-		if index<0{
+		_, index := zexists(db, ro, keystr, member)
+		if index < 0 {
 			tmp = -1
-		}else{
+		} else {
 			result = strconv.Itoa(index)
 		}
 	case "zcount":
@@ -355,33 +361,33 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 			break
 		}
 		end, length = bulkstring(pos, a)
-		min,_ := strconv.Atoi(a[end-1-length:end-1])
+		min, _ := strconv.Atoi(a[end-1-length : end-1])
 		pos = end + 1
 		end, length = bulkstring(pos, a)
-		max,_ := strconv.Atoi(a[end-1-length:end-1])
+		max, _ := strconv.Atoi(a[end-1-length : end-1])
 		pos = end + 1
-		slice,_ := db.Get(ro,[]byte(keystr))
-		zlen,_ := strconv.Atoi(string(slice.Data()))
+		slice, _ := db.Get(ro, []byte(keystr))
+		zlen, _ := strconv.Atoi(string(slice.Data()))
 		i := 0
 		count := 0
-		it.Seek([]byte("z"+keystr[1:]))
-		for i<zlen{
+		it.Seek([]byte("z" + keystr[1:]))
+		for i < zlen {
 			zkey := it.Key()
-			score,_ := strconv.Atoi(string(zkey.Data()))
-			if score>=min{
+			score, _ := strconv.Atoi(string(zkey.Data()))
+			if score >= min {
 				break
 			}
-			i+=1
+			i += 1
 			it.Next()
 		}
-		for i<zlen{
+		for i < zlen {
 			zkey := it.Key()
-			score,_ := strconv.Atoi(string(zkey.Data()))
-			if score>max{
+			score, _ := strconv.Atoi(string(zkey.Data()))
+			if score > max {
 				break
 			}
-			count+=1
-			i+=1
+			count += 1
+			i += 1
 			it.Next()
 		}
 		result = strconv.Itoa(count)
@@ -397,39 +403,39 @@ func read(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro 
 			break
 		}
 		end, length = bulkstring(pos, a)
-		start,_ := strconv.Atoi(a[end-1-length:end-1])
+		start, _ := strconv.Atoi(a[end-1-length : end-1])
 		pos = end + 1
 		end, length = bulkstring(pos, a)
-		stop,_ := strconv.Atoi(a[end-1-length:end-1])
+		stop, _ := strconv.Atoi(a[end-1-length : end-1])
 		pos = end + 1
-		slice,_ := db.Get(ro,[]byte(keystr))
-		zlen,_ := strconv.Atoi(string(slice.Data()))
-		if start<0{
-			start+=zlen
+		slice, _ := db.Get(ro, []byte(keystr))
+		zlen, _ := strconv.Atoi(string(slice.Data()))
+		if start < 0 {
+			start += zlen
 		}
-		if stop<0{
-			stop+=zlen
+		if stop < 0 {
+			stop += zlen
 		}
-		if start>0 &&start<zlen{
-			if stop>=zlen{
-				stop = zlen-1
+		if start > 0 && start < zlen {
+			if stop >= zlen {
+				stop = zlen - 1
 			}
 			i := 0
-			it.Seek([]byte("z"+keystr[1:]))
-			for i<start{
+			it.Seek([]byte("z" + keystr[1:]))
+			for i < start {
 				it.Next()
-				i+=1
+				i += 1
 			}
-			for i<stop{
+			for i < stop {
 				zkey := it.Key()
 				zkeystr := string(zkey.Data())
-				result += zkeystr[len(keystr)+8:]+"\r\n"
+				result += zkeystr[len(keystr)+8:] + "\r\n"
 				it.Next()
-				i+=1
+				i += 1
 			}
 		}
 	}
-	backstream := back(result,tmp)
+	backstream := back(result, tmp)
 	conn.Write(backstream)
 	<-ch
 }

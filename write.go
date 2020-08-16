@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
-func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro *gorocksdb.ReadOptions, wo *gorocksdb.WriteOptions){
+func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro *gorocksdb.ReadOptions, wo *gorocksdb.WriteOptions) {
 
 	mu.Lock()
 
-	for len(ch)>0{
+	for len(ch) > 0 {
 		time.Sleep(time.Second)
 	}
 	pos := 0
@@ -22,7 +22,7 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 	it := db.NewIterator(ro)
 	defer it.Close()
 	rand.Seed(time.Now().UnixNano())
-	switch kw1{
+	switch kw1 {
 	case "set":
 		if lencmd != 3 {
 			result = amounterr
@@ -48,7 +48,7 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		pos = end + 1
 		end, length = bulkstring(pos, a)
 		pos = end + 1
-		if !exist(db,ro,keystr) {
+		if !exist(db, ro, keystr) {
 			value := []byte("$" + a[end-1-length:end-1])
 			db.Put(wo, []byte(keystr), value)
 			result = "1"
@@ -69,11 +69,11 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		pos = end + 1
 		valuestr := string(slice.Data()) + a[end-1-length:end-1]
 		if len(slice.Data()) == 0 {
-			valuestr = "$"+valuestr
+			valuestr = "$" + valuestr
 		}
 		value := []byte(valuestr)
-		db.Put(wo,key,value)
-		result = strconv.Itoa(len(valuestr)-1)
+		db.Put(wo, key, value)
+		result = strconv.Itoa(len(valuestr) - 1)
 	case "setrange":
 		if lencmd != 4 {
 			result = amounterr
@@ -90,8 +90,8 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		slice, _ := db.Get(ro, key)
 		pos = end + 1
 		valuestr := string(slice.Data())
-		if len(valuestr)==0{
-			valuestr+="$"
+		if len(valuestr) == 0 {
+			valuestr += "$"
 		}
 		if len(valuestr) < index+1 {
 			i := index + 1 - len(valuestr)
@@ -103,7 +103,7 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		valuestr = valuestr[:index+1] + appstr
 		value := []byte(valuestr)
 		db.Put(wo, key, value)
-		result = strconv.Itoa(len(valuestr)-1)
+		result = strconv.Itoa(len(valuestr) - 1)
 	case "lpush":
 		if lencmd < 3 {
 			result = amounterr
@@ -190,7 +190,7 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		}
 		listlen, leftseq, rightseq, curseq := message(db, ro, keystr)
 		if listlen == 1 {
-			slice,_ := db.Get(ro,[]byte("l"+keystr[1:]+B8(leftseq)))
+			slice, _ := db.Get(ro, []byte("l"+keystr[1:]+B8(leftseq)))
 			db.Delete(wo, []byte(keystr))
 			db.Delete(wo, []byte("l"+keystr[1:]+B8(leftseq)))
 			result = string(slice.Data())[16:]
@@ -225,7 +225,7 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		}
 		listlen, leftseq, rightseq, curseq := message(db, ro, keystr)
 		if listlen == 1 {
-			slice,_ := db.Get(ro,[]byte("l"+keystr[1:]+B8(leftseq)))
+			slice, _ := db.Get(ro, []byte("l"+keystr[1:]+B8(leftseq)))
 			db.Delete(wo, []byte(keystr))
 			db.Delete(wo, []byte("l"+keystr[1:]+B8(leftseq)))
 			result = string(slice.Data())[16:]
@@ -261,8 +261,8 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		}
 		end, length = bulkstring(pos, a)
 		pos = end + 1
-		index,err := strconv.Atoi(a[end-1-length:end-1])
-		if err!=nil{
+		index, err := strconv.Atoi(a[end-1-length : end-1])
+		if err != nil {
 			result = "index need to be integer"
 			break
 		}
@@ -372,7 +372,7 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		if i == 0 {
 			result = "-1"
 		} else {
-			result = strconv.Itoa(listlen+1)
+			result = strconv.Itoa(listlen + 1)
 		}
 	case "lrem":
 		if lencmd != 4 {
@@ -676,7 +676,7 @@ func write(conn net.Conn, a string, kw1 string, lencmd int, db *gorocksdb.DB, ro
 		}
 		result = strconv.Itoa(removenum)
 	}
-	backstream := back(result,tmp)
+	backstream := back(result, tmp)
 	conn.Write(backstream)
 	mu.Unlock()
 }

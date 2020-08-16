@@ -9,13 +9,11 @@ import (
 	"time"
 )
 
-var ch = make(chan int,3)
+var ch = make(chan int, 3)
 var mu sync.Mutex
 var ok = "OK"
 var no = "FALSE"
 var amounterr = "argumentamounterror"
-
-
 
 func handleConn(c net.Conn, optype map[string]string, db *gorocksdb.DB, ro *gorocksdb.ReadOptions, wo *gorocksdb.WriteOptions) {
 	defer c.Close()
@@ -34,26 +32,26 @@ func handleConn(c net.Conn, optype map[string]string, db *gorocksdb.DB, ro *goro
 			}
 			decode := string(buf)
 			//fmt.Println(decode,len(decode))
-			if n<10{
-				if n!=1 || decode[0]!=' '{
-					result+=decode[:n]
+			if n < 10 {
+				if n != 1 || decode[0] != ' ' {
+					result += decode[:n]
 				}
 				//fmt.Println(result)
-				kw1,lencmd,pos := getkw1(result)
-				if optype[kw1]=="read"{
+				kw1, lencmd, pos := getkw1(result)
+				if optype[kw1] == "read" {
 					mu.Lock()
 					mu.Unlock()
 					ch <- 0
-					go read(c,result[pos:],kw1,lencmd,db,ro)
+					go read(c, result[pos:], kw1, lencmd, db, ro)
 					// get a shared-lock goroutine read()
 				}
-				if optype[kw1]=="write"{
-					go write(c,result[pos:],kw1,lencmd,db,ro,wo)
+				if optype[kw1] == "write" {
+					go write(c, result[pos:], kw1, lencmd, db, ro, wo)
 					//get a mutex-lock goroutine write()
 				}
-				if optype[kw1]==""{
+				if optype[kw1] == "" {
 					//no such command
-					backstream := back("no such command",0)
+					backstream := back("no such command", 0)
 					c.Write(backstream)
 				}
 				result = ""
@@ -86,8 +84,6 @@ func main() {
 	writeOptions := gorocksdb.NewDefaultWriteOptions()
 	writeOptions.SetSync(true)
 	//logs := make([]string,10)
-
-
 
 	optype := make(map[string]string)
 	optype["set"] = "write"
@@ -128,8 +124,8 @@ func main() {
 			fmt.Println("accept error:", err)
 			continue
 		}
-		i+=1
-		go handleConn(c,optype,db,readOptions,writeOptions)
+		i += 1
+		go handleConn(c, optype, db, readOptions, writeOptions)
 		// start a new goroutine to handle
 		// the new connection.
 		//defer c.Close()

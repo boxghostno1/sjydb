@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-
 //ascard := "*2\r\n$5\r\nscard\r\n$4\r\nset1\r\n"
 //aspop := "*2\r\n$4\r\nspop\r\n$4\r\nset1\r\n"
 //asismember := "*3\r\n$9\r\nsismember\r\n$4\r\nset1\r\n$5\r\nworld"
@@ -56,28 +55,28 @@ func main() {
 	defer conn.Close()
 	log.Println("dial ok")
 	fmt.Println("SJYDB SUCCESSED OPEN!")
-	for{
+	for {
 		fmt.Print("SJYDB-->")
-		inputReader := bufio.NewReader(os.Stdin)	// 使用了自动类型推导，不需要var关键字声明
+		inputReader := bufio.NewReader(os.Stdin) // 使用了自动类型推导，不需要var关键字声明
 		//inputReader = bufio.NewReader(os.Stdin)
 		//input, err = inputReader.ReadString('\n')
 		input, err := inputReader.ReadString('\n')
-		if err!=nil{
+		if err != nil {
 			break
 		}
 		input = input[:len(input)-1]
-		if input=="exit"{
+		if input == "exit" {
 			conn.Close()
 			break
 		}
-		if input=="help"{
+		if input == "help" {
 			fmt.Println(helptxt)
 			continue
 		}
-		code:= encoder(input)
+		code := encoder(input)
 
 		conn.Write([]byte(code))
-		if len(code)%10==0{
+		if len(code)%10 == 0 {
 			conn.Write([]byte(" "))
 		}
 		result := ""
@@ -96,11 +95,11 @@ func main() {
 					result += decode[:n]
 				}
 				//fmt.Println(result)
-				end,length := bulkstring(0,result)
-				if length==-1{
+				end, length := bulkstring(0, result)
+				if length == -1 {
 					fmt.Println("---------------------------error--------------------------")
-				}else{
-					fmt.Println(result[end-1-length:end-1])
+				} else {
+					fmt.Println(result[end-1-length : end-1])
 				}
 				break
 			}
@@ -111,15 +110,14 @@ func main() {
 	//time.Sleep(time.Second * 10000)
 }
 
-func encoder(input string) string{
+func encoder(input string) string {
 	ary := strings.Fields(input)
-	result := "*"+strconv.Itoa(len(ary))+"\r\n"
+	result := "*" + strconv.Itoa(len(ary)) + "\r\n"
 	i := 0
-	for i<len(ary){
-		result += "$"+strconv.Itoa(len(ary[i]))+"\r\n"+ary[i]+"\r\n"
-		i+=1
+	for i < len(ary) {
+		result += "$" + strconv.Itoa(len(ary[i])) + "\r\n" + ary[i] + "\r\n"
+		i += 1
 	}
 
 	return result
 }
-
