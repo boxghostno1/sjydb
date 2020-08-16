@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //ascard := "*2\r\n$5\r\nscard\r\n$4\r\nset1\r\n"
@@ -47,9 +48,10 @@ func main() {
 	helptxt := "Hi! Here's the little DataBase from SJY! SJYDB is a lightweight database compatible with reids protocol based on rocksdb storage engine. It now supports most redis commands such as set key value, You can view all the commands on Redis' official website:  https://redis.io/commands"
 
 	log.Println("begin dial...")
-	conn, err := net.Dial("tcp", "192.168.1.4:8888")
+	conn, err := net.DialTimeout("tcp", "192.168.1.4:8888",time.Second*10)
 	if err != nil {
 		log.Println("dial error:", err)
+		time.Sleep(time.Second*100)
 		return
 	}
 	defer conn.Close()
@@ -107,7 +109,7 @@ func main() {
 		}
 
 	}
-	//time.Sleep(time.Second * 10000)
+	//time.Sleep(time.Second * 10)
 }
 
 func encoder(input string) string {
@@ -118,6 +120,8 @@ func encoder(input string) string {
 		result += "$" + strconv.Itoa(len(ary[i])) + "\r\n" + ary[i] + "\r\n"
 		i += 1
 	}
-
+	if len(ary)==0{
+		result += "*1\r\n$0\r\n\r\n"
+	}
 	return result
 }
