@@ -63,10 +63,14 @@ func main() {
 		//inputReader = bufio.NewReader(os.Stdin)
 		//input, err = inputReader.ReadString('\n')
 		input, err := inputReader.ReadString('\n')
+
 		if err != nil {
 			break
 		}
 		input = input[:len(input)-1]
+		if input[-1]=='\r'{
+			input = input[:len(input)-1]
+		}
 		if input == "exit" {
 			conn.Close()
 			break
