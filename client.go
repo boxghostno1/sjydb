@@ -48,7 +48,7 @@ func main() {
 	helptxt := "Hi! Here's the little DataBase from SJY! SJYDB is a lightweight database compatible with reids protocol based on rocksdb storage engine. It now supports most redis commands such as set key value, You can view all the commands on Redis' official website:  https://redis.io/commands"
 
 	log.Println("begin dial...")
-	conn, err := net.DialTimeout("tcp", "192.168.1.4:8888",time.Second*10)
+	conn, err := net.Dial("tcp", ":8888")
 	if err != nil {
 		log.Println("dial error:", err)
 		time.Sleep(time.Second*100)
