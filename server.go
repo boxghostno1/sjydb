@@ -63,7 +63,7 @@ func handleConn(c net.Conn, optype map[string]string, db *gorocksdb.DB, ro *goro
 }
 
 func main() {
-	l, err := net.Listen("tcp", "192.168.1.4:8888")
+	l, err := net.Listen("tcp", ":8888")
 	if err != nil {
 		fmt.Println("listen error:", err)
 		return
